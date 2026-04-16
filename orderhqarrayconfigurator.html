@@ -268,7 +268,11 @@
       box-shadow: 0 10px 24px rgba(0, 171, 200, 0.18);
     }
 
-    .status {
+    
+.btn-compact{padding:6px 10px;font-size:12px;line-height:1;border-radius:10px;}
+#layoutViewport{position:relative;}
+.layout-png-btn{position:absolute;top:10px;right:10px;z-index:50;}
+.status {
       min-height: 1rem;
       font-size: 0.92rem;
       color: var(--muted);
@@ -622,7 +626,12 @@
       .enclosure-specs { grid-template-columns: 1fr; }
       .actions button { width: 100%; }
     }
-  </style>
+  
+    /* System Dimensions summary formatting */
+    .sd-wrap { margin-top: 6px; }
+    .sd-item { margin: 6px 0; line-height: 1.25; }
+    .sd-item strong { display: block; margin-bottom: 2px; }
+</style>
 </head>
 <body>
   <div class="page">
@@ -669,13 +678,7 @@
                 <label class="toggle-pill"><input type="radio" name="units" value="imperial" checked /> Imperial</label>
                 <label class="toggle-pill"><input type="radio" name="units" value="metric" /> Metric</label>
               </div>
-
-              <div class="actions">
-                <button id="copyBtn" type="button" class="btn-secondary">Copy Summary</button>
-                <button id="downloadSummaryBtn" type="button" class="btn-secondary">Download Summary</button>
-                <button id="pngBtn" type="button" class="btn-highlight">Save as PNG</button>
-              </div>
-              <div id="status" class="status" aria-live="polite"></div>
+<div id="status" class="status" aria-live="polite"></div>
             </div>
           </div>
         </section>
@@ -721,20 +724,20 @@
                             <li>
                 <span class="component-name">ELECTRONICS ENCLOSURE &lt;-&gt; COMPARTMENTS</span>
                 <ul>
-                  <li><strong>Data:</strong> <span id="ee_conn_cols">(Number of Columns)</span> wired ethernet connection(s) via CAT6 required</li>
                   <li><strong>Power:</strong> Proprietary 20' power cable provided</li>
+                  <li><strong>Data:</strong> <span id="ee_conn_cols">(Number of Columns)</span> wired ethernet connection(s) via CAT6 required</li>
                 </ul>
               </li>
 <li>
-                <span class="component-name">Customer User Interface (CUI)</span>
+                <span class="component-name">ELECTRONICS ENCLOSURE &lt;-&gt; CUSTOMER USER INTERFACE (CUI)</span>
                 <ul>
-                  <li><strong>Other:</strong> Wired PoE ethernet connection to electronics enclosure via CAT6</li>
+                  <li><strong>Data:</strong> Wired PoE ethernet connection to electronics enclosure via CAT6</li>
                 </ul>
               </li>
               <li>
-                <span class="component-name">Employee User Interface (EUI)</span>
+                <span class="component-name">ELECTRONICS ENCLOSURE &lt;-&gt; EMPLOYEE USER INTERFACE (EUI)</span>
                 <ul>
-                  <li><strong>Other:</strong> Wired PoE ethernet connection to electronics enclosure via CAT6</li>
+                  <li><strong>Data:</strong> Wired PoE ethernet connection to electronics enclosure via CAT6</li>
                 </ul>
               </li>
             </ul>
@@ -775,7 +778,7 @@
           </div>
 
           <div class="viewport" id="layoutViewport">
-            <div class="viewport-inner">
+<div class="viewport-inner">
               <div class="canvas">
                 <div id="grid" class="grid"></div>
               </div>
@@ -917,6 +920,7 @@
     const copyBtn = document.getElementById('copyBtn');
     const downloadSummaryBtn = document.getElementById('downloadSummaryBtn');
     const pngBtn = document.getElementById('pngBtn');
+
     const statusEl = document.getElementById('status');
     const layoutViewport = document.getElementById('layoutViewport');
     const gridEl = document.getElementById('grid');
@@ -1094,13 +1098,22 @@
       heightValueEl.textContent = formatMeasurement(config.height, config.units);
       depthValueEl.textContent = formatMeasurement(config.depth, config.units);
 
+      const interiorBySize = {
+        small: { w: 13.5, h: 12.0, d: 20.0 },
+        medium: { w: 13.5, h: 16.0, d: 20.0 }
+      };
+
+      const interior = interiorBySize[config.sizeKey] || interiorBySize.small;
+      const interiorLine = `${formatMeasurement(interior.w, config.units)} W × ${formatMeasurement(interior.h, config.units)} H × ${formatMeasurement(interior.d, config.units)} D`;
+
       summaryBoxEl.innerHTML = `
-        <strong>${config.configName}</strong><br />
-        Overall Dimensions: <strong>${formatSizeLine(config.width, config.height, config.depth, config.units)}</strong><br />
-        Compartment Count: <strong>${config.rows * config.cols}</strong><br />
-        Module Size: <strong>${formatMeasurement(config.module.width, config.units)} W × ${formatMeasurement(config.module.height, config.units)} H × ${formatMeasurement(config.module.depth, config.units)} D</strong><br />
-        Electronics Enclosure: <strong>29.9 W × 15.9 H × 5.3 D in</strong> • <strong>9 lbs</strong><br />
-        Units: <strong>${unitWord(config.units)}</strong>
+        <strong>${config.configName}</strong>
+        <div class="sd-wrap">
+          <div class="sd-item"><strong>Compartment Count</strong>${config.rows * config.cols}</div>
+          <div class="sd-item"><strong>Exterior Compartment Size</strong>${formatMeasurement(config.module.width, config.units)} W × ${formatMeasurement(config.module.height, config.units)} H × ${formatMeasurement(config.module.depth, config.units)} D</div>
+          <div class="sd-item"><strong>Interior Compartment Size</strong>${interiorLine}</div>
+          <div class="sd-item"><strong>Electronics Enclosure Size</strong>29.9 W × 15.9 H × 5.3 D in • 9 lbs</div>
+        </div>
       `;
     }
 
@@ -1298,7 +1311,10 @@
       }
     }
 
-    function registerAutoUpdates() {
+    
+
+    
+function registerAutoUpdates() {
       [rowsInput, colsInput].forEach((input) => {
         input.addEventListener('input', rebuild);
         input.addEventListener('change', rebuild);
@@ -1308,10 +1324,9 @@
         input.addEventListener('change', rebuild);
       });
     }
-
-    copyBtn.addEventListener('click', copySummary);
-    downloadSummaryBtn.addEventListener('click', downloadSummary);
-    pngBtn.addEventListener('click', exportPNG);
+    if (copyBtn) copyBtn.addEventListener('click', copySummary);
+    if (downloadSummaryBtn) downloadSummaryBtn.addEventListener('click', downloadSummary);
+    if (pngBtn) pngBtn.addEventListener('click', exportPNG);
 
     if ('ResizeObserver' in window) {
       new ResizeObserver(() => {
@@ -1375,7 +1390,7 @@
       (evt && evt.target === colsInput && proposedC > prevC)
     );
 
-    if (wouldExceed || changed || triedToIncreaseAtBoundary) {
+    if (wouldExceed || changed) {
       showMsg();
     }
 
