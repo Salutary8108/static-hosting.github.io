@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Mask Rule Analyzer</title>
+    <style>
+        body {
+            font-family: calibri;
+        }
+        
+        div.row span {
+            position: absolute;
+        }
+        
+        div.row span:nth-child(1) {
+            left: 15px;
+        }
+        
+        div.row span:nth-child(2) {
+            left: 100px;
+        }
+    </style>
+    <script language="javascript">
+        function hexConvert() {
+            let ign = document.getElementById("ign").value;
+            let proc = document.getElementById("proc").value;
+            let rev = document.getElementById("rev");
+            let hexIn = document.getElementById("hex").value;
+            let binOut = parseInt(hexIn, 16).toString(2);
+            console.log(hexIn + " -> " + binOut);
+            if (rev.checked == true) {
+                let binOutRev = binOut.split("").reverse().join("");
+                binOut = binOutRev;
+                console.log(hexIn + " -> (Reverse) " + binOut);
+            }
+            let parseBin = binOut.slice(binOut.length - ign - proc, binOut.length - ign);
+            console.log("Ignore " + ign + "; Process " + proc + " -> " + parseBin);
+            let decOut = parseInt(parseBin, 2);
+            console.log(parseBin + " -> " + decOut);
+            let binMax = new Array(parseInt(proc) + 1).join(1);
+            let decMax = parseInt(binMax, 2);
+            console.log("Pad zeroes to: " + decMax.toString().length);
+            document.getElementById("out").innerHTML = decOut.toString().padStart(decMax.toString().length, "0");
+        }
+
+        function hexSearch() {
+            let hexIn = document.getElementById("sHex").value;
+            let decIn = document.getElementById("sValue").value.toString();
+            let decInMax = new Array(parseInt(decIn.toString().length) + 1).join(9);
+            let binOut = parseInt(hexIn, 16).toString(2);
+            let binOutRev = binOut.split("").reverse().join("");
+            let binPad = 0;
+            console.log(decIn + " | " + decInMax);
+            for (let i = 30;
+                (2 ** i).toString().length >= decIn.toString().length; i--) {
+                    if (2 ** i < decIn) {
+                    break
+                }
+                binPad = parseInt(2 ** i, 10).toString(2).length - 1;
+            }
+            let binIn = parseInt(decIn, 10).toString(2).padStart(binPad, "0");
+            console.log(hexIn + " -> " + binOut);
+            console.log(hexIn + " -> (Reverse) " + binOutRev);
+            console.log(decIn + " -> " + binIn);
+            console.log("Pad length (Process): " + binPad);
+            if (binOut.search(binIn) > 0) {
+                document.getElementById("result").innerHTML = "Found!";
+                document.getElementById("sIgn").innerHTML = binOut.length - binOut.search(binIn) - binPad;
+                document.getElementById("sProc").innerHTML = binPad;
+                document.getElementById("sRev").innerHTML = "No";
+            } else if (binOutRev.search(binIn) > 0) {
+                document.getElementById("result").innerHTML = "Found Reverse!";
+                document.getElementById("sIgn").innerHTML = binOutRev.length - binOutRev.search(binIn) - binPad;
+                document.getElementById("sProc").innerHTML = binPad;
+                document.getElementById("sRev").innerHTML = "Yes";
+            } else {
+                document.getElementById("result").innerHTML = "Not Found!";
+                document.getElementById("sIgn").innerHTML = "";
+                document.getElementById("sProc").innerHTML = "";
+                document.getElementById("sRev").innerHTML = "";
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <h1>
+        Mask Rule Analyzer
+    </h1>
+    <p>Given a set mask rule, this tool will convert the badge's hex data to a decimal value.</p>
+    <form>
+        <div class="row"><span><label for="ign">Ignore:</label> </span><span><input id="ign" name="ign" type="text"></span></div><br><br>
+        <div class="row"><span><label for="proc">Process:</label> </span><span><input id="proc" name="proc" type="text"></span></div><br><br>
+        <div class="row"><span><label for="rev">Reverse:</label> </span><span><input id="rev" name="rev" type="checkbox" value="Reverse"></span></div><br><br>
+        <div class="row"><span><label for="hex">Hex input:</label> </span><span><input id="hex" name="hex" type="text"></span></div><br><br>
+        <div class="row"><span><button type="button" onclick="hexConvert()">Submit</button></span></div><br><br>
+        <div class="row"><span><label for="out">Output:</label> </span><span><output id="out" name="out" type="text"> </output></span></div><br><br>
+    </form>
+    <hr>
+    <h2>
+        Mask Rule Search
+    </h2>
+    <p>Given a new badge and expected value, this will search for the appropriate mask rule for the badge.</p>
+    <form>
+        <div class="row"><span><label for="sHex">Hex input:</label> </span><span><input id="sHex" name="sHex" type="text"></span></div><br><br>
+        <div class="row"><span><label for="sValue">Search for:</label> </span><span><input id="sValue" name="sValue" type="text"> </input></span></div><br><br>
+        <div class="row"><span><button type="button" onclick="hexSearch()">Search</button></span></div><br><br>
+        <div class="row"><span><label for="result">Result:</label> </span><span><output id="result" name="result" type="text"></span></div><br><br>
+        <div class="row"><span><label for="sIgn">Ignore:</label> </span><span><output id="sIgn" name="sIgn" type="text"></span></div><br><br>
+        <div class="row"><span><label for="sProc">Process:</label> </span><span><output id="sProc" name="sProc" type="text"></span></div><br><br>
+        <div class="row"><span><label for="sRev">Reversed:</label> </span><span><output id="sRev" name="sRev" type="text"></span></div><br><br>
+    </form>
+</body>
+
+</html>
