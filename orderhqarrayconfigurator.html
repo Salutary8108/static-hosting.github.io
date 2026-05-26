@@ -268,11 +268,7 @@
       box-shadow: 0 10px 24px rgba(0, 171, 200, 0.18);
     }
 
-    
-.btn-compact{padding:6px 10px;font-size:12px;line-height:1;border-radius:10px;}
-#layoutViewport{position:relative;}
-.layout-png-btn{position:absolute;top:10px;right:10px;z-index:50;}
-.status {
+    .status {
       min-height: 1rem;
       font-size: 0.92rem;
       color: var(--muted);
@@ -627,10 +623,21 @@
       .actions button { width: 100%; }
     }
   
-    /* System Dimensions summary formatting */
-    .sd-wrap { margin-top: 6px; }
-    .sd-item { margin: 6px 0; line-height: 1.25; }
-    .sd-item strong { display: block; margin-bottom: 2px; }
+.number-stepper{display:flex;align-items:center;gap:6px;}
+.number-stepper input{width:60px;text-align:center;}
+.step-btn{display:flex;align-items:center;justify-content:center;font-size:18px;min-width:40px;height:40px;border-radius:8px;border:1px solid #ccc;background:#f3f4f6;}
+.step-btn:active{background:#e5e7eb;}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+input[type=number]{-moz-appearance:textfield;}
+
+
+    /* Row Heights layout adjustment */
+    #rowHeightGrid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
 </style>
 </head>
 <body>
@@ -658,11 +665,11 @@
               <div class="row">
                 <div class="field">
                   <label for="rows">Rows</label>
-                  <input id="rows" type="number" min="1" value="3" inputmode="numeric" />
+                  <div class="number-stepper"><button type="button" class="step-btn" data-target="rows" data-dir="-1">-</button><input id="rows" type="number" min="1" value="3" inputmode="numeric" /><button type="button" class="step-btn" data-target="rows" data-dir="1">+</button></div>
                 </div>
                 <div class="field">
                   <label for="cols">Columns</label>
-                  <input id="cols" type="number" min="1" value="3" inputmode="numeric" />
+                  <div class="number-stepper"><button type="button" class="step-btn" data-target="cols" data-dir="-1">-</button><input id="cols" type="number" min="1" value="3" inputmode="numeric" /><button type="button" class="step-btn" data-target="cols" data-dir="1">+</button></div>
                 </div>
               <div id="compartmentMaxMsg" class="notice" style="display:none;color:#a94442;background:#f2dede;border:1px solid #ebccd1;padding:8px;margin:10px 0;">A single array system cannot have more than 30 compartments.</div>
 </div>
@@ -674,11 +681,31 @@
               </div>
 
               <div class="row toggle-group">
+                <span class="group-label">Mounted on Platform?</span>
+                <label class="toggle-pill"><input type="radio" name="platform" value="no" checked /> No</label>
+                <label class="toggle-pill"><input type="radio" name="platform" value="yes" /> Yes</label>
+              </div>
+
+              <div id="platformHeightRow" class="row" style="display:none;">
+                <div class="field">
+                  <label for="platformHeight">Platform Height</label>
+                  <input id="platformHeight" type="number" min="0" step="0.1" value="0" inputmode="decimal" />
+                  <span id="platformHeightUnit" class="group-label">in</span>
+                </div>
+              </div>
+
+              <div class="row toggle-group">
                 <span class="group-label">Units</span>
                 <label class="toggle-pill"><input type="radio" name="units" value="imperial" checked /> Imperial</label>
                 <label class="toggle-pill"><input type="radio" name="units" value="metric" /> Metric</label>
               </div>
-<div id="status" class="status" aria-live="polite"></div>
+
+              <div class="actions">
+                <button id="copyBtn" type="button" class="btn-secondary">Copy Summary</button>
+                <button id="downloadSummaryBtn" type="button" class="btn-secondary">Download Summary</button>
+                <button id="pngBtn" type="button" class="btn-highlight">Save as PNG</button>
+              </div>
+              <div id="status" class="status" aria-live="polite"></div>
             </div>
           </div>
         </section>
@@ -703,7 +730,6 @@
                 <div id="depthValue" class="value">20.0 in</div>
               </div>
             </div>
-            <div id="summaryBox" class="summary-box"></div>
           </div>
         </section>
 
@@ -724,20 +750,20 @@
                             <li>
                 <span class="component-name">ELECTRONICS ENCLOSURE &lt;-&gt; COMPARTMENTS</span>
                 <ul>
-                  <li><strong>Power:</strong> Proprietary 20' power cable provided</li>
                   <li><strong>Data:</strong> <span id="ee_conn_cols">(Number of Columns)</span> wired ethernet connection(s) via CAT6 required</li>
+                  <li><strong>Power:</strong> Proprietary 20' power cable provided</li>
                 </ul>
               </li>
 <li>
-                <span class="component-name">ELECTRONICS ENCLOSURE &lt;-&gt; CUSTOMER USER INTERFACE (CUI)</span>
+                <span class="component-name">Customer User Interface (CUI)</span>
                 <ul>
-                  <li><strong>Data:</strong> Wired PoE ethernet connection to electronics enclosure via CAT6</li>
+                  <li><strong>Other:</strong> Wired PoE ethernet connection to electronics enclosure via CAT6</li>
                 </ul>
               </li>
               <li>
-                <span class="component-name">ELECTRONICS ENCLOSURE &lt;-&gt; EMPLOYEE USER INTERFACE (EUI)</span>
+                <span class="component-name">Employee User Interface (EUI)</span>
                 <ul>
-                  <li><strong>Data:</strong> Wired PoE ethernet connection to electronics enclosure via CAT6</li>
+                  <li><strong>Other:</strong> Wired PoE ethernet connection to electronics enclosure via CAT6</li>
                 </ul>
               </li>
             </ul>
@@ -764,7 +790,6 @@
             <div class="title-card">
               <div class="eyebrow">Overall Size</div>
               <div id="titleDims" class="value">48.0 W × 43.5 H × 20.0 D</div>
-              <div class="subvalue" id="titleUnits">Inches</div>
             </div>
             <div class="title-card">
               <div class="eyebrow">Layout</div>
@@ -778,12 +803,22 @@
           </div>
 
           <div class="viewport" id="layoutViewport">
-<div class="viewport-inner">
+            <div class="viewport-inner">
               <div class="canvas">
                 <div id="grid" class="grid"></div>
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section id="rowHeightSection" class="panel" style="display:none;">
+        <div class="panel-header">
+          <h2 class="panel-title">Row Heights</h2>
+          <span class="panel-accent"></span>
+        </div>
+        <div class="panel-body">
+          <div id="rowHeightGrid" class="enclosure-specs"></div>
         </div>
       </section>
 
@@ -920,7 +955,6 @@
     const copyBtn = document.getElementById('copyBtn');
     const downloadSummaryBtn = document.getElementById('downloadSummaryBtn');
     const pngBtn = document.getElementById('pngBtn');
-
     const statusEl = document.getElementById('status');
     const layoutViewport = document.getElementById('layoutViewport');
     const gridEl = document.getElementById('grid');
@@ -935,6 +969,11 @@
     const titleLayoutEl = document.getElementById('titleLayout');
     const titleSizeEl = document.getElementById('titleSize');
     const titleUnitsEl = document.getElementById('titleUnits');
+    const platformHeightRowEl = document.getElementById('platformHeightRow');
+    const platformHeightInput = document.getElementById('platformHeight');
+    const platformHeightUnitEl = document.getElementById('platformHeightUnit');
+    const rowHeightSectionEl = document.getElementById('rowHeightSection');
+    const rowHeightGridEl = document.getElementById('rowHeightGrid');
     const brandLogoEl = document.getElementById('brandLogo');
     const enclosureScaleBoxEl = document.getElementById('enclosureScaleBox');
     const enclosureScaleCaptionEl = document.getElementById('enclosureScaleCaption');
@@ -951,6 +990,28 @@
 
     function getSelectedUnits() {
       return document.querySelector('input[name="units"]:checked').value;
+    }
+
+    function getPlatformMounted() {
+      return document.querySelector('input[name="platform"]:checked').value === 'yes';
+    }
+
+    let platformHeightInches = 0;
+    let lastUnits = getSelectedUnits();
+
+    function parsePlatformHeight(units = getSelectedUnits()) {
+      const value = Math.max(0, Number.parseFloat(platformHeightInput.value) || 0);
+      return units === 'metric' ? value / MM_PER_INCH : value;
+    }
+
+    function setPlatformHeightInputFromInches(units = getSelectedUnits()) {
+      platformHeightInput.value = convertValue(platformHeightInches, units).toFixed(1);
+      platformHeightUnitEl.textContent = unitLabel(units);
+    }
+
+    function syncPlatformHeightFromInput(units = getSelectedUnits()) {
+      platformHeightInches = parsePlatformHeight(units);
+      platformHeightUnitEl.textContent = unitLabel(units);
     }
 
     function sanitizeCount(value) {
@@ -972,9 +1033,13 @@
       const height = rows * module.height;
       const depth = module.depth;
       const units = getSelectedUnits();
+      syncPlatformHeightFromInput(units);
+      const platformMounted = getPlatformMounted();
+      const platformHeight = platformMounted ? platformHeightInches : 0;
+      const rowHeights = Array.from({ length: rows }, (_, index) => platformHeight + (index * module.height));
       const label = 'OrderHQ® Array';
       const configName = `${label} - ${rows} Rows ${cols} Columns - ${module.label}`;
-      return { rows, cols, sizeKey, module, width, height, depth, units, label, configName };
+      return { rows, cols, sizeKey, module, width, height, depth, units, platformMounted, platformHeight, rowHeights, label, configName };
     }
 
     function setStatus(message = '') {
@@ -1051,7 +1116,7 @@
       titleDimsEl.textContent = formatSizeLine(config.width, config.height, config.depth, config.units);
       titleLayoutEl.textContent = `${config.rows}R${config.cols}C`;
       titleSizeEl.textContent = config.module.label;
-      titleUnitsEl.textContent = unitWord(config.units);
+      if (titleUnitsEl) titleUnitsEl.textContent = unitWord(config.units);
       if (layoutMetaEl) layoutMetaEl.textContent = '';
     }
 
@@ -1098,28 +1163,40 @@
       heightValueEl.textContent = formatMeasurement(config.height, config.units);
       depthValueEl.textContent = formatMeasurement(config.depth, config.units);
 
-      const interiorBySize = {
-        small: { w: 13.5, h: 12.0, d: 20.0 },
-        medium: { w: 13.5, h: 16.0, d: 20.0 }
-      };
+      if (summaryBoxEl) {
+        summaryBoxEl.innerHTML = `
+          <strong>${config.configName}</strong><br />
+          Overall Dimensions: <strong>${formatSizeLine(config.width, config.height, config.depth, config.units)}</strong><br />
+          Compartment Count: <strong>${config.rows * config.cols}</strong><br />
+          Module Size: <strong>${formatMeasurement(config.module.width, config.units)} W × ${formatMeasurement(config.module.height, config.units)} H × ${formatMeasurement(config.module.depth, config.units)} D</strong><br />
+          Electronics Enclosure: <strong>29.9 W × 15.9 H × 5.3 D in</strong> • <strong>9 lbs</strong><br />
+          Units: <strong>${unitWord(config.units)}</strong>
+        `;
+      }
+    }
 
-      const interior = interiorBySize[config.sizeKey] || interiorBySize.small;
-      const interiorLine = `${formatMeasurement(interior.w, config.units)} W × ${formatMeasurement(interior.h, config.units)} H × ${formatMeasurement(interior.d, config.units)} D`;
+    function updateRowHeights(config) {
+      platformHeightRowEl.style.display = config.platformMounted ? '' : 'none';
+      rowHeightSectionEl.style.display = config.platformMounted ? '' : 'none';
+      platformHeightUnitEl.textContent = unitLabel(config.units);
 
-      summaryBoxEl.innerHTML = `
-        <strong>${config.configName}</strong>
-        <div class="sd-wrap">
-          <div class="sd-item"><strong>Compartment Count</strong>${config.rows * config.cols}</div>
-          <div class="sd-item"><strong>Exterior Compartment Size</strong>${formatMeasurement(config.module.width, config.units)} W × ${formatMeasurement(config.module.height, config.units)} H × ${formatMeasurement(config.module.depth, config.units)} D</div>
-          <div class="sd-item"><strong>Interior Compartment Size</strong>${interiorLine}</div>
-          <div class="sd-item"><strong>Electronics Enclosure Size</strong>29.9 W × 15.9 H × 5.3 D in • 9 lbs</div>
+      if (!config.platformMounted) {
+        rowHeightGridEl.innerHTML = '';
+        return;
+      }
+
+      rowHeightGridEl.innerHTML = config.rowHeights.map((height, index) => `
+        <div class="enclosure-spec">
+          <div class="label">Row ${index + 1}</div>
+          <div class="value">${formatMeasurement(height, config.units)}</div>
         </div>
-      `;
+      `).join('');
     }
 
     function rebuild() {
       currentConfig = getConfig();
       buildGrid(currentConfig);
+      updateRowHeights(currentConfig);
       updateTitleBlock(currentConfig);
       updateResults(currentConfig);
       setStatus('');
@@ -1311,22 +1388,29 @@
       }
     }
 
-    
-
-    
-function registerAutoUpdates() {
-      [rowsInput, colsInput].forEach((input) => {
+    function registerAutoUpdates() {
+      [rowsInput, colsInput, platformHeightInput].forEach((input) => {
         input.addEventListener('input', rebuild);
         input.addEventListener('change', rebuild);
       });
 
-      document.querySelectorAll('input[name="size"], input[name="units"]').forEach((input) => {
+      document.querySelectorAll('input[name="size"], input[name="platform"]').forEach((input) => {
         input.addEventListener('change', rebuild);
       });
+
+      document.querySelectorAll('input[name="units"]').forEach((input) => {
+        input.addEventListener('change', () => {
+          platformHeightInches = parsePlatformHeight(lastUnits);
+          lastUnits = getSelectedUnits();
+          setPlatformHeightInputFromInches(lastUnits);
+          rebuild();
+        });
+      });
     }
-    if (copyBtn) copyBtn.addEventListener('click', copySummary);
-    if (downloadSummaryBtn) downloadSummaryBtn.addEventListener('click', downloadSummary);
-    if (pngBtn) pngBtn.addEventListener('click', exportPNG);
+
+    copyBtn.addEventListener('click', copySummary);
+    downloadSummaryBtn.addEventListener('click', downloadSummary);
+    pngBtn.addEventListener('click', exportPNG);
 
     if ('ResizeObserver' in window) {
       new ResizeObserver(() => {
@@ -1390,7 +1474,7 @@ function registerAutoUpdates() {
       (evt && evt.target === colsInput && proposedC > prevC)
     );
 
-    if (wouldExceed || changed) {
+    if (wouldExceed) {
       showMsg();
     }
 
@@ -1403,6 +1487,41 @@ function registerAutoUpdates() {
   // Initialize
   clampToMax();
 })();
+</script>
+
+<script>
+window.addEventListener('load', function(){
+ document.querySelectorAll('.step-btn').forEach(btn=>{
+  btn.addEventListener('click', function(){
+    const rowsInput=document.getElementById('rows');
+    const colsInput=document.getElementById('cols');
+    const msg=document.getElementById('compartmentMaxMsg');
+
+    let rows=parseInt(rowsInput.value)||1;
+    let cols=parseInt(colsInput.value)||1;
+
+    let newRows=rows;
+    let newCols=cols;
+
+    if(this.dataset.target==='rows') newRows=rows+parseInt(this.dataset.dir);
+    else newCols=cols+parseInt(this.dataset.dir);
+
+    if(newRows<1) newRows=1;
+    if(newCols<1) newCols=1;
+
+    if(newRows*newCols>30){
+      if(msg){ msg.style.display='block'; setTimeout(()=>msg.style.display='none',3000);} 
+      return;
+    }
+
+    rowsInput.value=newRows;
+    colsInput.value=newCols;
+
+    rowsInput.dispatchEvent(new Event('input',{bubbles:true}));
+    colsInput.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+ });
+});
 </script>
 </body>
 </html>
